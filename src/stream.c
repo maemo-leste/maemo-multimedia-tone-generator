@@ -374,7 +374,7 @@ void stream_clean_buffer(struct stream *stream)
     uint32_t        dcnt;
     size_t          offs;
     size_t          len;
-    int             i,j;
+    uint32_t        i,j;
     int32_t         sample;
 
     gettimeofday(&tv, NULL);
@@ -391,14 +391,14 @@ void stream_clean_buffer(struct stream *stream)
             len = stream->buf.buflen - offs;
 
             if (len < dcnt * 2) {
-                TRACE("%s(): resetting %u bytes in write-ahead-buffer",
+                TRACE("%s(): resetting %zu bytes in write-ahead-buffer",
                       __FUNCTION__, len);
                 memset((char *)stream->buf.samples + offs, 0, len);
             }
             else {
                 for (i = 0, j = offs / 2;  i < dcnt;  i++, j++) {
                     sample = stream->buf.samples[j];
-                    sample = (sample * ((int32_t)dcnt - i-1)) / (int32_t)dcnt;
+                    sample = (sample * ((int32_t)dcnt - i - 1)) / (int32_t)dcnt;
 
                     if (sample > 32767)
                         stream->buf.samples[j] = 32767;
@@ -411,7 +411,7 @@ void stream_clean_buffer(struct stream *stream)
                 len  -= dcnt * 2;
                 offs += dcnt * 2;
 
-                TRACE("%s(): ramping down %u and resetting %u bytes in "
+                TRACE("%s(): ramping down %u and resetting %zu bytes in "
                       "write-ahead-buffer", __FUNCTION__, dcnt * 2, len);
 
                 if (len > 0)
@@ -570,8 +570,8 @@ static void write_callback(pa_stream *pastr, size_t bytes, void *userdata)
     int16_t              *extra;
     size_t                extlen;
     struct timeval        tv;
-    uint32_t              start;
-    uint32_t              gap;
+    uint32_t              start = 0;
+    uint32_t              gap = 0;
     uint32_t              calcend;
     uint32_t              calc;
     uint32_t              period;
@@ -621,7 +621,7 @@ static void write_callback(pa_stream *pastr, size_t bytes, void *userdata)
             extlen = buflen - stream->buf.buflen;
 
             if (samples != NULL) {
-                TRACE("%s(): extending write-ahead-buffer %u butes (%u -> %u)",
+                TRACE("%s(): extending write-ahead-buffer %zu butes (%zu -> %zu)",
                       __FUNCTION__, extlen, stream->buf.buflen, buflen);
                 write_samples(stream, extra,extlen, &cpu);
                 cpu += stream->buf.cpu;
@@ -649,7 +649,7 @@ static void write_callback(pa_stream *pastr, size_t bytes, void *userdata)
             stat->wrtime = calcend;
 
             if (stream->bcnt == 0 /* && buflen > stream->bufsize */) {
-                TRACE("Stream '%s' pre-buffers of %u bytes",
+                TRACE("Stream '%s' pre-buffers of %zu bytes",
                       stream->name, buflen);
                 stat->firstwr = stat->wrtime;
             }
@@ -671,7 +671,7 @@ static void write_callback(pa_stream *pastr, size_t bytes, void *userdata)
 #if 0
                 TRACE("Buffer writting period %umsec", period);
 #endif
-                
+
                 if (period > (uint32_t)min_bufreq) {
                     stat->late++;
                     

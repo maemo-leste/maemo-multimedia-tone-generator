@@ -82,7 +82,7 @@ static guint   tmute_id;
 static void destroy_callback(void *);
 static void set_mute_timeout(struct ausrv *, guint);
 static gboolean mute_timeout_callback(gpointer);
-static void request_muting(struct ausrv *, dbus_bool_t);
+static void request_muting(struct ausrv *, int);
 
 
 
@@ -248,21 +248,21 @@ static gboolean mute_timeout_callback(gpointer data)
     return FALSE;
 }
 
-static void request_muting(struct ausrv *ausrv, dbus_bool_t new_mute)
+static void request_muting(struct ausrv *ausrv, int new_mute)
 {
     int sts;
-
-    new_mute = new_mute ? MUTE_ON : MUTE_OFF;
+    dbus_bool_t new_mute_b = (new_mute == MUTE_ON ? TRUE : FALSE);
 
     if (ausrv != NULL && mute != new_mute) {
         sts = dbusif_send_signal(ausrv->tonegend, NULL, "Mute",
-                                 DBUS_TYPE_BOOLEAN, &new_mute,
+                                 DBUS_TYPE_BOOLEAN, &new_mute_b,
                                  DBUS_TYPE_INVALID);
 
         if (sts != 0)
             LOG_ERROR("failed to send mute signal");
         else {
-            TRACE("sent signal to turn mute %s", new_mute ? "on" : "off");
+            TRACE("sent signal to turn mute %s",
+                  new_mute == MUTE_ON ? "on" : "off");
             mute = new_mute;
         }
     }
