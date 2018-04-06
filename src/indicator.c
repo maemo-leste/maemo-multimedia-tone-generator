@@ -29,6 +29,7 @@ USA.
 #include <trace/trace.h>
 
 #include "ausrv.h"
+#include "dtmf.h"
 #include "stream.h"
 #include "tone.h"
 #include "indicator.h"

@@ -10,6 +10,7 @@ AC_PROG_LIBTOOL
 AC_C_RESTRICT
 
 CFLAGS="${CFLAGS} -Wall -Wextra -fno-omit-frame-pointer"
+LDFLAGS="${LDFLAGS} -lm"
 
 PKG_CHECK_MODULES(DEPS, dbus-glib-1 dbus-1 gobject-2.0 glib-2.0 libpulse libpulse-mainloop-glib)
 AC_SUBST(DEPS_CFLAGS)

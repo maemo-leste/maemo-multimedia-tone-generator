@@ -1,3 +1,9 @@
+tone-generator (0.1.8) unstable; urgency=medium
+
+  * Fix compilation errors
+
+ -- Ivan J. <parazyd@dyne.org> Fri, 06 Apr 2018 16:00:00 +0200
+
 tone-generator (0.1.7) unstable; urgency=medium
 
   * Initial Maemo Leste packaging.
