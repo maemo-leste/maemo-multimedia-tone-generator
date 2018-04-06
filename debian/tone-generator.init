@@ -1,0 +1,75 @@
+#!/sbin/openrc-run
+# Copyright 1999-2018 Gentoo Foundation
+# Distributed under the terms of the GNU General Public License v2
+
+command="/usr/bin/tonegend"
+description="Tone Generator Daemon"
+pidfile="/var/run/tonegend.pid"
+
+depend() {
+	after hildon-desktop
+}
+
+start() {
+	ebegin "Starting $description"
+
+	imsi="$(dbus-send --system --type=method-call --print-reply=True \
+			--dest=com.nokia.phone.SIM \
+			/com/nokia/phone/SIM Phone.Sim.get_imsi)"
+
+	rc=$?
+
+	case "$rc" in
+		0)
+			mcc="$(echo $imsi | cut -b 1-3)"
+			# echo "Mobile Country Code = $mcc
+			;;
+		*)
+			mcc=""
+			# echo "Could not obtain Mobile Country Code"
+			;;
+	esac
+
+	case "$mcc" in
+		202 | 204 | 208 | 214 | 216 | 222 | 225 | 226 | 228 | 230 | 231 | \
+		232 | 238 | 240 | 244 | 246 | 247 | 248 | 260 | 262 | 266 | 268 | \
+		270 | 290 | 293 | 294 | 295 | 297 )
+			std="cept"
+			;;
+
+		302 | 310 | 311 | 312 | 313 | 314 | 315 | 316 | 332 | 544)
+			std="ansi"
+			;;
+
+		302 | 440 | 441 )
+			std="japan"
+			;;
+
+		*)
+			std="unknown"
+			;;
+	esac
+
+	signal_option="-s $std"
+	[ "$std" = unknown ] && signal_option=""
+
+	# echo "Signaling standard = $std"
+
+	dtmf_props="module-stream-restore.id=x-maemo-key-pressed"
+	ind_props="media.role=phone,module-stream-restore.id=sink-input-by-media-role:phone"
+	notif_props="media.role=phone,module-stream-restore.id=sink-input-by-media-role:phone"
+	dtmf_volume=100
+	ind_volume=40
+	notif_volume=40
+
+	start-stop-daemon --start --background \
+		--make-pidfile --pidfile $pidfile \
+		--startas /bin/sh -- -c \
+			"exec $command $signal_option -b 100 -r 20 -D $dtmf_props -I $ind_props -N $notif_props \
+				--volume-dtmf $dtmf_volume --volume-indicator $ind_volume --volume-notif $notif_volume"
+}
+
+stop() {
+	ebegin "Stopping $description"
+	start-stop-daemon --stop --pidfile $pidfile
+}
