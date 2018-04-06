@@ -1,4 +1,5 @@
 Source: tone-generator
+Section: misc
 Priority: optional
 Maintainer: Ivan J. <parazyd@dyne.org>
 Build-Depends:
